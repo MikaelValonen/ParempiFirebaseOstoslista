@@ -1,63 +1,77 @@
 import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, FlatList, } from 'react-native';
-import * as SQLite from 'expo-sqlite';
+import { initializeApp } from 'firebase/app';
+import { getDatabase, push, ref, onValue, remove } from 'firebase/database';
+
+
 
 export default function Ostoslista() {
   const [ostos, setOstos] = useState('');
   const [maara, setMaara] = useState('');
   const [data, setData] = useState([]);
-  const db = SQLite.openDatabase('shoppingdb.db');
-  
+  const firebaseConfig = {
+    apiKey: "AIzaSyCrxcNfz4PD4fOgXXPlC6PTClTR7JOCIEU",
+    authDomain: "ostoslistafirebase-6547f.firebaseapp.com",
+    databaseURL: "https://ostoslistafirebase-6547f-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "ostoslistafirebase-6547f",
+    storageBucket: "ostoslistafirebase-6547f.appspot.com",
+    messagingSenderId: "70140162796",
+    appId: "1:70140162796:web:e910c203182dd87bc3ebc9",
+    measurementId: "G-L8K1M6BNKK"
+  };
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const database = getDatabase(app);
+ 
+  const saveItem = () => {
+    const newItemRef = ref(database, 'data/');
+    const newItem = {
+      ostos: ostos,
+      maara: maara
+    };
+    push(newItemRef, newItem);
+    setOstos('');
+    setMaara('');
+  };
+      
   useEffect(() => {
-    db.transaction(tx => {
-    tx.executeSql('create table if not exists shopping (id integer primary key not null, maara text, ostos text);');
-    }, () => console.error("Error when creating DB"), updateList);
-    }, []); 
-
-  const buttonAdd = async () => {
-    if(ostos == '' || maara == ''){
-      setOstos('');
-      setMaara(''); 
-      return;}
-    else {
-      db.transaction(tx => {
-      tx.executeSql('insert into shopping (maara, ostos) values (?, ?);',
-      [maara, ostos]);
-      }, null, updateList)
+    const itemsRef = ref(database, 'data/');
+    onValue(itemsRef, (snapshot) => {
+      const info = snapshot.val();
+      if (info) {
+        const items = Object.keys(info).map((key) => ({
+          id: key,
+          ...info[key],
+        }));
+        setData(items);
+      } else {
+        setData([]);
       }
-      setOstos('');
-      setMaara('');     
-    }
+    });
+  }, []);
+  
     const deleteItem = (id) => {
-      db.transaction(
-      tx => tx.executeSql('delete from shopping where id = ?;', [id]), null, updateList)
-      }
-  const updateList = () => {
-    db.transaction(tx => {
-    tx.executeSql('select * from shopping;', [], (_, { rows }) =>
-    setData(rows._array)
-        );
-      }, null, null);
-    }
-  return (
-    <View style={styles.container}>
-      <StatusBar style="auto" />
-      <TextInput style={styles.input} onChangeText={ostos => setOstos(ostos)} value={ostos.toString()}/>
-      <TextInput style={styles.input} onChangeText={maara => setMaara(maara)} value={maara.toString()}/>
-      <View style={styles.miniContainer}>
-      <Button title='Add' style={styles.button} onPress={() => buttonAdd()}>Add</Button>
-      </View>
+      remove(ref(database, `data/${id}`));
+    };
+    return (
       <View style={styles.container}>
-      <Text>Shopping list</Text>
-      <FlatList data={data} keyExtractor={item => item.id.toString()} renderItem={({item}) =>
-      <View style={styles.miniContainer}>
-      <Text>{item.ostos},{item.maara}</Text> 
-      <Text style={{color: '#0000ff'}} onPress={() => deleteItem(item.id)}> bought </Text>
-      </View> } />
+        <StatusBar style="auto" />
+        <TextInput style={styles.input} onChangeText={setOstos} value={ostos} placeholder="Item"/>
+        <TextInput style={styles.input} onChangeText={setMaara} value={maara} placeholder="Quantity"/>
+        <View style={styles.miniContainer}>
+        <Button title="Add" onPress={saveItem} />
+        </View>
+        <View style={styles.container}>
+          <Text>Shopping list</Text>
+          <FlatList data={data} keyExtractor={(item) => item.id.toString()} renderItem={({ item }) => (
+              <View style={styles.miniContainer}>
+              <Text>{item.ostos}, {item.maara}</Text>
+              <Text style={{ color: '#0000ff' }} onPress={() => deleteItem(item.id)}> bought </Text>
+              </View> )}/>
+        </View>
       </View>
-    </View>
-  );
+    );
 }
 
 const styles = StyleSheet.create({
