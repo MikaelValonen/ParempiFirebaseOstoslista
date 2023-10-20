@@ -58,7 +58,7 @@ export default function Ostoslista() {
       remove(ref(database, `data/${id}`));
     };
     const renderItem = ({ item }) => ( //1 Testataan, jos erittäminen korjaa
-    console.log('Fetched item:', item), // testataan, jos mitään löytyy
+    //console.log('Fetched item:', item), // testataan, jos mitään löytyy
     <ListItem bottomDivider>
       <ListItem.Content>
         <ListItem.Title>{item.ostos}</ListItem.Title>
@@ -78,7 +78,7 @@ export default function Ostoslista() {
         <Button raised icon={{ name: 'save' }} buttonStyle={{ backgroundColor: 'lightblue' }}  title="SAVE"  onPress={saveItem}  />
         </View>
         <View style={styles.container}>
-        <FlatList data={data} renderItem={renderItem} keyExtractor={(item) => item.id.toString()} // data ei näy ollenkaan
+        <FlatList data={data} renderItem={renderItem} keyExtractor={(item) => item.id.toString()} // data ei näy ollenkaan, index ei toimi myöskään
         />
       </View>
       </View>
