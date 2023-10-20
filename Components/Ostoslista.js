@@ -1,25 +1,24 @@
-import { StatusBar } from 'expo-status-bar';
 import React, { useState, useEffect } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, FlatList, } from 'react-native';
+import { StyleSheet, View, FlatList } from 'react-native';
 import { initializeApp } from 'firebase/app';
-import { getDatabase, push, ref, onValue, remove } from 'firebase/database';
+import { getDatabase, ref, push, onValue, remove } from 'firebase/database';
+import { Header, Icon, Input, Button, ListItem } from 'react-native-elements'; //2 testataan toista import käskyä
 
-
+const firebaseConfig = {
+  apiKey: "AIzaSyCrxcNfz4PD4fOgXXPlC6PTClTR7JOCIEU",
+  authDomain: "ostoslistafirebase-6547f.firebaseapp.com",
+  databaseURL: "https://ostoslistafirebase-6547f-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "ostoslistafirebase-6547f",
+  storageBucket: "ostoslistafirebase-6547f.appspot.com",
+  messagingSenderId: "70140162796",
+  appId: "1:70140162796:web:e910c203182dd87bc3ebc9",
+  measurementId: "G-L8K1M6BNKK"
+};
 
 export default function Ostoslista() {
   const [ostos, setOstos] = useState('');
   const [maara, setMaara] = useState('');
   const [data, setData] = useState([]);
-  const firebaseConfig = {
-    apiKey: "AIzaSyCrxcNfz4PD4fOgXXPlC6PTClTR7JOCIEU",
-    authDomain: "ostoslistafirebase-6547f.firebaseapp.com",
-    databaseURL: "https://ostoslistafirebase-6547f-default-rtdb.europe-west1.firebasedatabase.app",
-    projectId: "ostoslistafirebase-6547f",
-    storageBucket: "ostoslistafirebase-6547f.appspot.com",
-    messagingSenderId: "70140162796",
-    appId: "1:70140162796:web:e910c203182dd87bc3ebc9",
-    measurementId: "G-L8K1M6BNKK"
-  };
   // Initialize Firebase
   const app = initializeApp(firebaseConfig);
   const database = getDatabase(app);
@@ -44,35 +43,47 @@ export default function Ostoslista() {
           id: key,
           ...info[key],
         }));
+        console.log('Fetched items:', items); //data löytyy listasta
         setData(items);
       } else {
         setData([]);
       }
+    },
+    (error) => {
+      console.error('Error fetching data:', error);
     });
   }, []);
   
     const deleteItem = (id) => {
       remove(ref(database, `data/${id}`));
     };
+    const renderItem = ({ item }) => ( //1 Testataan, jos erittäminen korjaa
+    console.log('Fetched item:', item), // testataan, jos mitään löytyy
+    <ListItem bottomDivider>
+      <ListItem.Content>
+        <ListItem.Title>{item.ostos}</ListItem.Title>
+        <ListItem.Subtitle>
+          <Icon name="delete" color="red" onPress={() => deleteItem(item.id)} />
+          {item.maara}
+        </ListItem.Subtitle>
+      </ListItem.Content>
+    </ListItem>
+  );
     return (
       <View style={styles.container}>
-        <StatusBar style="auto" />
-        <TextInput style={styles.input} onChangeText={setOstos} value={ostos} placeholder="Item"/>
-        <TextInput style={styles.input} onChangeText={setMaara} value={maara} placeholder="Quantity"/>
+        <Header centerComponent={{ text: 'SHOPPING LIST', style: { color: '#fff' } }}/>
+        <Input  placeholder='Product'  label='PRODUCT'  onChangeText={setOstos}  value={ostos}/>
+        <Input  placeholder='Amount'  label='AMOUNT'  onChangeText={setMaara}  value={maara}/>
         <View style={styles.miniContainer}>
-        <Button title="Add" onPress={saveItem} />
+        <Button raised icon={{ name: 'save' }} buttonStyle={{ backgroundColor: 'lightblue' }}  title="SAVE"  onPress={saveItem}  />
         </View>
         <View style={styles.container}>
-          <Text>Shopping list</Text>
-          <FlatList data={data} keyExtractor={(item) => item.id.toString()} renderItem={({ item }) => (
-              <View style={styles.miniContainer}>
-              <Text>{item.ostos}, {item.maara}</Text>
-              <Text style={{ color: '#0000ff' }} onPress={() => deleteItem(item.id)}> bought </Text>
-              </View> )}/>
-        </View>
+        <FlatList data={data} renderItem={renderItem} keyExtractor={(item) => item.id.toString()} // data ei näy ollenkaan
+        />
+      </View>
       </View>
     );
-}
+  }
 
 const styles = StyleSheet.create({
   container: {
