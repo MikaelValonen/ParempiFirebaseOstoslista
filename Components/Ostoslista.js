@@ -57,16 +57,13 @@ export default function Ostoslista() {
     const deleteItem = (id) => {
       remove(ref(database, `data/${id}`));
     };
-    const renderItem = ({ item }) => ( //1 Testataan, jos erittäminen korjaa
-    //console.log('Fetched item:', item), // testataan, jos mitään löytyy
-    <ListItem bottomDivider>
-      <ListItem.Content>
+    const renderItem = ({ item }) => (
+    <ListItem bottomDivider style={styles.listItemContainer}>
         <ListItem.Title>{item.ostos}</ListItem.Title>
         <ListItem.Subtitle>
-          <Icon name="delete" color="red" onPress={() => deleteItem(item.id)} />
           {item.maara}
-        </ListItem.Subtitle>
-      </ListItem.Content>
+        </ListItem.Subtitle >
+        <Icon name="delete" color="red" onPress={() => deleteItem(item.id)} />
     </ListItem>
   );
     return (
@@ -78,7 +75,7 @@ export default function Ostoslista() {
         <Button raised icon={{ name: 'save' }} buttonStyle={{ backgroundColor: 'lightblue' }}  title="SAVE"  onPress={saveItem}  />
         </View>
         <View style={styles.container}>
-        <FlatList data={data} renderItem={renderItem} keyExtractor={(item) => item.id.toString()} // data ei näy ollenkaan, index ei toimi myöskään
+        <FlatList data={data} renderItem={renderItem} keyExtractor={(item) => item.id.toString()}
         />
       </View>
       </View>
@@ -113,5 +110,14 @@ const styles = StyleSheet.create({
     color: 'blue',
     borderColor: 'gray',
     borderWidth: 1,
+  },
+  listItemContainer: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'lightgray',
+    alignItems: 'center',
   },
 });
